@@ -29,27 +29,13 @@ void loop() {
     delay(1000);
 
 
-    Moteurs(forward,1000);
+    //Moteurs(forward,1000);
+    //Moteurs(stop,10000);
+    Moteurs(left,1000);
     Moteurs(stop,10000);
-  // // forward full speed for one second
-  // delay(1000);
-  
-
-  //         // ramp down forward
-  //     for (int i=255; i>=0; i--) {
-  //       analogWrite(MOTOR_IN2, i);
-  //       delay(10);
-  //     }
+      
 
 
-  // // backward full speed for one second
-  // delay(1000);
-
-  // // ramp down backward
-  // for (int i=255; i>=0; i--) {
-  //   analogWrite(MOTOR_IN1, i);
-  //   delay(10);
-  // }
 }
 
 void Moteurs(move sense,int time)
@@ -77,9 +63,11 @@ void Moteurs(move sense,int time)
       }
       break;
     case left:            // voir si on fait pas tourner les roues de gauche en arrière
-      digitalWrite(MOTOR_IN3, LOW);
+      digitalWrite(MOTOR_IN2,LOW);
+      digitalWrite(MOTOR_IN4, LOW);
       for (int i=0; i<255; i++) {        
-        analogWrite(MOTOR_IN4, i);
+        analogWrite(MOTOR_IN3, i);
+        analogWrite(MOTOR_IN1,i);
         delay(10);
       }
       break;
@@ -91,6 +79,10 @@ void Moteurs(move sense,int time)
       }
       break;
     case stop:
+      digitalWrite(MOTOR_IN1, LOW);
+      digitalWrite(MOTOR_IN2, LOW);
+      digitalWrite(MOTOR_IN3, LOW);
+      digitalWrite(MOTOR_IN4, LOW);
       break;    
   }
   delay(time);
