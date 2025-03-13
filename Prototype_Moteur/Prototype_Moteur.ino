@@ -4,6 +4,8 @@
 #define MOTOR_IN4 5
 #define ULTRASON_TRIG1 21
 #define ULTRASON_ECHO1 22
+#define ULTRASON_TRIG2 23
+#define ULTRASON_ECHO2 24
 
 enum move {
   forward,
@@ -21,6 +23,10 @@ void setup() {
   digitalWrite(ULTRASON_TRIG1, LOW);
   pinMode(ULTRASON_ECHO1, INPUT);
 
+  pinMode(ULTRASON_TRIG2, OUTPUT);
+  digitalWrite(ULTRASON_TRIG2, LOW);
+  pinMode(ULTRASON_ECHO2, INPUT);
+
   pinMode(MOTOR_IN1, OUTPUT);
   pinMode(MOTOR_IN2, OUTPUT);
   pinMode(MOTOR_IN3, OUTPUT);
@@ -28,14 +34,16 @@ void setup() {
 }
 
 void loop() {
-  float distance = getDistance();
-  Serial.print("Distance: ");
-  Serial.print(distance);
+  float distance1 = getDistance(ULTRASON_TRIG1, ULTRASON_ECHO1);
+  float distance2 = getDistance(ULTRASON_TRIG2, ULTRASON_ECHO2);
+  Serial.print("Distance Capteur 1: ");
+  Serial.print(distance1);
+  Serial.print(" cm | Distance Capteur 2: ");
+  Serial.print(distance2);
   Serial.println(" cm");
 
-  if (distance < 10) { // Si un obstacle est trop proche
+  if (distance1 < 10 || distance2 < 10) { // Si un obstacle est détecté par au moins un capteur
     Moteurs(stop, 0);
-    Serial.println("Stop !!!");
   } else {
     Moteurs(forward, 0);
   }
@@ -43,11 +51,11 @@ void loop() {
   delay(500);
 }
 
-float getDistance() {
-  digitalWrite(ULTRASON_TRIG1, HIGH);
+float getDistance(int trigPin, int echoPin) {
+  digitalWrite(trigPin, HIGH);
   delayMicroseconds(10);
-  digitalWrite(ULTRASON_TRIG1, LOW);
-  int duration = pulseIn(ULTRASON_ECHO1, HIGH);
+  digitalWrite(trigPin, LOW);
+  int duration = pulseIn(echoPin, HIGH);
   return duration / 58.0;
 }
 
