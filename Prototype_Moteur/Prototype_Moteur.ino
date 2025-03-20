@@ -38,12 +38,13 @@ void loop() {
   float distance2 = getDistance(ULTRASON_TRIG2, ULTRASON_ECHO2);
   Serial.print("Distance Capteur 1: ");
   Serial.print(distance1);
-  Serial.print(" cm | Distance Capteur 2: ");
+  Serial.print(" cm | Distance Capteur 2: ");// attention la distance 2 va dans les négatif jsp pq
   Serial.print(distance2);
   Serial.println(" cm");
 
-  if (distance1 < 10 || distance2 < 10) { // Si un obstacle est détecté par au moins un capteur
+  if (distance1 < 10 || (distance2 < 10 && distance2>=0)) {  // Si un obstacle est détecté par au moins un capteur
     Moteurs(stop, 0);
+    Serial.println("stop");
   } else {
     Moteurs(forward, 0);
   }
