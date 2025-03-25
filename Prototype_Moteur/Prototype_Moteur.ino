@@ -7,6 +7,10 @@
 #define ULTRASON_TRIG2 23
 #define ULTRASON_ECHO2 24
 
+#define CAPTEUR_GAUCHE A0
+#define CAPTEUR_CENTRE A1
+#define CAPTEUR_DROITE A2
+
 enum move {
   forward,
   backward,
@@ -31,6 +35,10 @@ void setup() {
   pinMode(MOTOR_IN2, OUTPUT);
   pinMode(MOTOR_IN3, OUTPUT);
   pinMode(MOTOR_IN4, OUTPUT);
+
+  pinMode(CAPTEUR_GAUCHE, INPUT);
+  pinMode(CAPTEUR_CENTRE, INPUT);
+  pinMode(CAPTEUR_DROITE, INPUT);
 }
 
 void loop() {
@@ -42,11 +50,33 @@ void loop() {
   Serial.print(distance2);
   Serial.println(" cm");
 
+  int valGauche = analogRead(CAPTEUR_GAUCHE);
+  int valCentre = analogRead(CAPTEUR_CENTRE);
+  int valDroite = analogRead(CAPTEUR_DROITE);
+  Serial.print("Capteur Gauche: ");
+  Serial.print(valGauche);
+  Serial.print(" | Capteur Centre: ");
+  Serial.print(valCentre);
+  Serial.print(" | Capteur Droite: ");
+  Serial.println(valDroite);
+
+  int seuil = 300;
+
   if (distance1 < 10 || (distance2 < 10 && distance2>=0)) {  // Si un obstacle est détecté par au moins un capteur
     Moteurs(stop, 0);
-    Serial.println("stop");
-  } else {
+    Serial.println("Obstacle stop");
+  } else if (valCentre < seuil && valGauche > seuil && valDroite > seuil) {
     Moteurs(forward, 0);
+    Serial.println("Tout droit");
+  } else if ( valDroite< seuil) {
+    Moteurs(left, 0);
+    Serial.println("Tourne à gauche");
+  } else if (valGauche < seuil) {
+    Moteurs(right, 0);
+    Serial.println("Tourne à droite");
+  } else {
+    Moteurs(stop, 0);
+    Serial.println("Hors de la ligne !");
   }
 
   delay(500);
@@ -82,7 +112,9 @@ void Moteurs(move sense, int time) {
       break;
     case right:
       digitalWrite(MOTOR_IN1, LOW);
+      digitalWrite(MOTOR_IN3, 255);
       analogWrite(MOTOR_IN2, 255);
+      analogWrite(MOTOR_IN4, 255);
       break;
     case stop:
       digitalWrite(MOTOR_IN1, LOW);
