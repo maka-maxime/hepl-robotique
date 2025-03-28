@@ -11,12 +11,15 @@
 #define CAPTEUR_CENTRE A1
 #define CAPTEUR_DROITE A2
 
+#define VITESSE_MOTEURS 100
+
 enum move {
   forward,
   backward,
   left,
   right,
-  stop
+  stop,
+  uturn
 };
 
 void setup() {
@@ -44,11 +47,11 @@ void setup() {
 void loop() {
   float distance1 = getDistance(ULTRASON_TRIG1, ULTRASON_ECHO1);
   float distance2 = getDistance(ULTRASON_TRIG2, ULTRASON_ECHO2);
-  Serial.print("Distance Capteur 1: ");
+  /*Serial.print("Distance Capteur 1: ");
   Serial.print(distance1);
   Serial.print(" cm | Distance Capteur 2: ");// attention la distance 2 va dans les négatif jsp pq
   Serial.print(distance2);
-  Serial.println(" cm");
+  Serial.println(" cm");*/
 
   int valGauche = analogRead(CAPTEUR_GAUCHE);
   int valCentre = analogRead(CAPTEUR_CENTRE);
@@ -60,12 +63,14 @@ void loop() {
   Serial.print(" | Capteur Droite: ");
   Serial.println(valDroite);
 
-  int seuil = 300;
+  int seuil = 105;
 
   if (distance1 < 10 || (distance2 < 10 && distance2>=0)) {  // Si un obstacle est détecté par au moins un capteur
     Moteurs(stop, 0);
     Serial.println("Obstacle stop");
-  } else if (valCentre < seuil && valGauche > seuil && valDroite > seuil) {
+    // mettre le play du son 
+    //penser a mettre un delay ou voir attendre valeur retour d'attente du son
+  } else */if (valCentre < seuil && valGauche > seuil && valDroite > seuil) {
     Moteurs(forward, 0);
     Serial.println("Tout droit");
   } else if ( valDroite< seuil) {
@@ -79,7 +84,7 @@ void loop() {
     Serial.println("Hors de la ligne !");
   }
 
-  delay(500);
+  delay(15);
 }
 
 float getDistance(int trigPin, int echoPin) {
@@ -95,26 +100,26 @@ void Moteurs(move sense, int time) {
     case forward:
       digitalWrite(MOTOR_IN1, LOW);
       digitalWrite(MOTOR_IN4, LOW);
-      analogWrite(MOTOR_IN2, 255);
-      analogWrite(MOTOR_IN3, 255);
+      analogWrite(MOTOR_IN2, VITESSE_MOTEURS);
+      analogWrite(MOTOR_IN3, VITESSE_MOTEURS);
       break;
     case backward:
       digitalWrite(MOTOR_IN2, LOW);
       digitalWrite(MOTOR_IN3, LOW);
-      analogWrite(MOTOR_IN1, 255);
-      analogWrite(MOTOR_IN4, 255);
+      analogWrite(MOTOR_IN1, VITESSE_MOTEURS);
+      analogWrite(MOTOR_IN4, VITESSE_MOTEURS);
       break;
     case left:
       digitalWrite(MOTOR_IN2, LOW);
       digitalWrite(MOTOR_IN4, LOW);
-      analogWrite(MOTOR_IN3, 255);
-      analogWrite(MOTOR_IN1, 255);
+      analogWrite(MOTOR_IN3, VITESSE_MOTEURS);
+      analogWrite(MOTOR_IN1, VITESSE_MOTEURS);
       break;
     case right:
       digitalWrite(MOTOR_IN1, LOW);
-      digitalWrite(MOTOR_IN3, 255);
-      analogWrite(MOTOR_IN2, 255);
-      analogWrite(MOTOR_IN4, 255);
+      digitalWrite(MOTOR_IN3, LOW);
+      analogWrite(MOTOR_IN2, VITESSE_MOTEURS);
+      analogWrite(MOTOR_IN4, VITESSE_MOTEURS);
       break;
     case stop:
       digitalWrite(MOTOR_IN1, LOW);
@@ -122,6 +127,18 @@ void Moteurs(move sense, int time) {
       digitalWrite(MOTOR_IN3, LOW);
       digitalWrite(MOTOR_IN4, LOW);
       break;
+    case uturn:
+      digitalWrite(MOTOR_IN1, VITESSE_MOTEURS);
+      digitalWrite(MOTOR_IN4, VITESSE_MOTEURS);
+      analogWrite(MOTOR_IN2, VITESSE_MOTEURS);
+      analogWrite(MOTOR_IN3, VITESSE_MOTEURS);
+      delay(20);
+      digitalWrite(MOTOR_IN1, LOW);
+      digitalWrite(MOTOR_IN2, LOW);
+      digitalWrite(MOTOR_IN3, LOW);
+      digitalWrite(MOTOR_IN4, LOW);
+
+
   }
   if (time > 0) delay(time);
 }
