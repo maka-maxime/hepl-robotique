@@ -11,7 +11,8 @@
 #define CAPTEUR_CENTRE A1
 #define CAPTEUR_DROITE A2
 
-#define VITESSE_MOTEURS 100
+#define VITESSE_MOTEURS 50
+#define TAILLE_HISTORIQUE 10
 
 enum move {
   forward,
@@ -20,7 +21,12 @@ enum move {
   right,
   stop,
   uturn
+  
 };
+int historiqueGauche[TAILLE_HISTORIQUE] = {0};
+int historiqueCentre[TAILLE_HISTORIQUE] = {0};
+int historiqueDroite[TAILLE_HISTORIQUE] = {0};
+int indexHistorique = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -47,11 +53,11 @@ void setup() {
 void loop() {
   float distance1 = getDistance(ULTRASON_TRIG1, ULTRASON_ECHO1);
   float distance2 = getDistance(ULTRASON_TRIG2, ULTRASON_ECHO2);
-  /*Serial.print("Distance Capteur 1: ");
+  Serial.print("Distance Capteur 1: ");
   Serial.print(distance1);
   Serial.print(" cm | Distance Capteur 2: ");// attention la distance 2 va dans les négatif jsp pq
   Serial.print(distance2);
-  Serial.println(" cm");*/
+  Serial.println(" cm");
 
   int valGauche = analogRead(CAPTEUR_GAUCHE);
   int valCentre = analogRead(CAPTEUR_CENTRE);
@@ -63,14 +69,28 @@ void loop() {
   Serial.print(" | Capteur Droite: ");
   Serial.println(valDroite);
 
-  int seuil = 105;
+    // Mise à jour de l'historique
+  historiqueGauche[indexHistorique] = valGauche;
+  historiqueCentre[indexHistorique] = valCentre;
+  historiqueDroite[indexHistorique] = valDroite;
+  indexHistorique = (indexHistorique + 1) % TAILLE_HISTORIQUE;
+
+  // Calcul des moyennes glissantes
+  int moyGauche = moyenneGlissante(historiqueGauche);
+  int moyCentre = moyenneGlissante(historiqueCentre);
+  int moyDroite = moyenneGlissante(historiqueDroite);
+
+  // Calcul de la médiane
+  int seuil = mediane(moyGauche, moyCentre, moyDroite);
+  Serial.print("Valeur seuil ");
+  Serial.println(seuil);
 
   if (distance1 < 10 || (distance2 < 10 && distance2>=0)) {  // Si un obstacle est détecté par au moins un capteur
     Moteurs(stop, 0);
     Serial.println("Obstacle stop");
     // mettre le play du son 
     //penser a mettre un delay ou voir attendre valeur retour d'attente du son
-  } else */if (valCentre < seuil && valGauche > seuil && valDroite > seuil) {
+  } else if (valCentre < seuil && valGauche > seuil && valDroite > seuil) {
     Moteurs(forward, 0);
     Serial.println("Tout droit");
   } else if ( valDroite< seuil) {
@@ -85,6 +105,19 @@ void loop() {
   }
 
   delay(15);
+}
+int moyenneGlissante(int *tableau) {
+  int somme = 0;
+  for (int i = 0; i < TAILLE_HISTORIQUE; i++) {
+    somme += tableau[i];
+  }
+  return somme / TAILLE_HISTORIQUE;
+}
+
+int mediane(int a, int b, int c) {
+  if ((a >= b && a <= c) || (a >= c && a <= b)) return a;
+  if ((b >= a && b <= c) || (b >= c && b <= a)) return b;
+  return c;
 }
 
 float getDistance(int trigPin, int echoPin) {
