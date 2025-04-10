@@ -2,10 +2,10 @@
 #define MOTOR_IN2 3
 #define MOTOR_IN3 4
 #define MOTOR_IN4 5
-#define ULTRASON_TRIG1 21
-#define ULTRASON_ECHO1 22
-#define ULTRASON_TRIG2 23
-#define ULTRASON_ECHO2 24
+#define ULTRASON_TRIG1 22
+#define ULTRASON_ECHO1 23
+#define ULTRASON_TRIG2 24
+#define ULTRASON_ECHO2 25
 
 #define CAPTEUR_GAUCHE A0
 #define CAPTEUR_CENTRE A1
@@ -13,6 +13,15 @@
 
 #define VITESSE_MOTEURS 50
 #define TAILLE_HISTORIQUE 10
+
+#include <JQ6500_Serial.h>
+#define AUDIO_TX 18
+#define AUDIO_RX 19
+#define AUDIO_BAUD 9600
+#define AUDIO_STOP_SOUND 2
+#define AUDIO_VOLUME ((byte)30)
+
+JQ6500_Serial audio(Serial1);
 
 enum move {
   forward,
@@ -27,6 +36,8 @@ int historiqueGauche[TAILLE_HISTORIQUE] = {0};
 int historiqueCentre[TAILLE_HISTORIQUE] = {0};
 int historiqueDroite[TAILLE_HISTORIQUE] = {0};
 int indexHistorique = 0;
+
+uint8_t stopped = false;
 
 void setup() {
   Serial.begin(9600);
@@ -48,6 +59,12 @@ void setup() {
   pinMode(CAPTEUR_GAUCHE, INPUT);
   pinMode(CAPTEUR_CENTRE, INPUT);
   pinMode(CAPTEUR_DROITE, INPUT);
+
+  Serial1.begin(AUDIO_BAUD);
+  audio.reset();
+  audio.setEqualizer(MP3_EQ_NORMAL);
+  audio.setVolume(AUDIO_VOLUME);
+  audio.setLoopMode(MP3_LOOP_NONE);
 }
 
 void loop() {
@@ -62,11 +79,11 @@ void loop() {
   int valGauche = analogRead(CAPTEUR_GAUCHE);
   int valCentre = analogRead(CAPTEUR_CENTRE);
   int valDroite = analogRead(CAPTEUR_DROITE);
-  Serial.print("Capteur Gauche: ");
+  Serial.print("Capteur Droite: ");
   Serial.print(valGauche);
   Serial.print(" | Capteur Centre: ");
   Serial.print(valCentre);
-  Serial.print(" | Capteur Droite: ");
+  Serial.print(" | Capteur Gauche: ");
   Serial.println(valDroite);
 
     // Mise à jour de l'historique
@@ -88,8 +105,11 @@ void loop() {
   if (distance1 < 10 || (distance2 < 10 && distance2>=0)) {  // Si un obstacle est détecté par au moins un capteur
     Moteurs(stop, 0);
     Serial.println("Obstacle stop");
-    // mettre le play du son 
-    //penser a mettre un delay ou voir attendre valeur retour d'attente du son
+    if (stopped == false) {
+      audio.playFileByIndexNumber(AUDIO_STOP_SOUND);
+      stopped = true;
+    }
+    return;
   } else if (valCentre < seuil && valGauche > seuil && valDroite > seuil) {
     Moteurs(forward, 0);
     Serial.println("Tout droit");

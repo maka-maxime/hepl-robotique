@@ -1,5 +1,15 @@
 #include <JQ6500_Serial.h>
 
+/// Connector P2 (UART)
+/// SPK+  === Haut-parleur R
+/// SPK-  === Haut-parleur N
+/// ADC_L === NC
+/// ADC_H === NC
+/// VCC   === VCC
+/// GND   === GND
+/// TX    === AUDIO_RX
+/// RX    === AUDIO_TX
+
 #define AUDIO_TX 18
 #define AUDIO_RX 19
 #define AUDIO_BAUD 9600
