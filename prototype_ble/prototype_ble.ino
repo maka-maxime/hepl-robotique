@@ -11,6 +11,8 @@ void setup() {
   Serial.begin(9600);
   Serial2.begin(9600);
   pinMode(LED_PIN, OUTPUT);
+  pinMode(BLE_TX, OUTPUT);
+  pinMode(BLE_RX, INPUT);
   led_state = 0;
   Serial.println("Waiting for a connection...");
 }

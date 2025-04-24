@@ -1,5 +1,5 @@
-int trig=21;  
-int echo=22; 
+int trig=22;  
+int echo=23; 
 int duration;         
 float distance;   
 float meter;        
