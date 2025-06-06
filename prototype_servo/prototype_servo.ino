@@ -1,18 +1,11 @@
 #include <Servo.h>
 
-<<<<<<< Updated upstream
-#define SERVO_PIN 6
-#define SERVO_REST 0
-#define SERVO_POS1 30
-#define SERVO_POS2 120
-=======
 #define SERVO1_PIN 10
 #define SERVO1_MIN  0
 #define SERVO1_MAX 50
 #define SERVO2_PIN  9
 #define SERVO2_MIN  0
 #define SERVO2_MAX 50
->>>>>>> Stashed changes
 
 Servo servo1;
 Servo servo2;
