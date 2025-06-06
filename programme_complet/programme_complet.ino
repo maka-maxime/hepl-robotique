@@ -2,11 +2,14 @@
 #include <JQ6500_Serial.h>
 #include <Servo.h>
 
-#define SERVO_PIN1 6
-#define SERVO_PIN2 7
-#define SERVO_REST 0
-#define SERVO_POS1 30
-#define SERVO_POS2 120
+// Servomoteurs
+#define SERVO1_PIN  6
+#define SERVO1_MIN  0
+#define SERVO1_MAX 50
+#define SERVO2_PIN  7
+#define SERVO2_MIN  0
+#define SERVO2_MAX 50
+
 // Moteurs
 #define MOTOR_IN1 2
 #define MOTOR_IN2 3
@@ -82,6 +85,12 @@ void setupTimer2() {
 
 void setup() {
   Serial.begin(9600);
+
+  // Servomoteurs
+  servo1.attach(SERVO1_PIN);
+  servo1.write(SERVO1_MIN);
+  servo2.attach(SERVO2_PIN);
+  servo2.write(SERVO2_MIN);
 
   // LED BLE
   pinMode(LED_PIN, OUTPUT);
@@ -184,6 +193,7 @@ void loop() {
   if (sensorValues[0] < 50 && sensorValues[1] < 50 && sensorValues[2] < 50) {
     Moteurs(stop, 0);
     Serial.println("Tous les capteurs sur blanc : arrêt");
+    move_arm();
     Moteurs(uturn, 0);
     return;
   }
@@ -258,4 +268,42 @@ void Moteurs(move sense, int time) {
   }
 
   if (time > 0) delay(time);
+}
+
+void move_arm() {
+  uint8_t angle1 = SERVO1_MIN;
+  uint8_t angle2 = SERVO2_MIN;
+
+  // Raise the arm
+  while (angle1 < SERVO1_MAX)
+  {
+    servo1.write(angle1);
+    angle1++;
+    delay(20);
+  }
+  delay(1000);
+
+  // Extend the arm
+  while (angle2 < SERVO2_MAX) {
+    servo2.write(angle2);
+    angle2++;
+    delay(20);
+  }
+  delay(2000);
+  
+  // Retract the arm
+  while (angle2 > SERVO2_MIN) {
+    servo2.write(angle2);
+    angle2--;
+    delay(20);
+  }
+  delay(1000);
+
+  // Lower the arm
+  while (angle1 > SERVO1_MIN)
+  {
+    servo1.write(angle1);
+    angle1--;
+    delay(20);
+  }
 }
