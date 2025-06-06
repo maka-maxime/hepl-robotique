@@ -5,6 +5,7 @@
 // Servomoteurs
 #define SERVO1_PIN  6
 #define SERVO1_MIN  0
+
 #define SERVO1_MAX 50
 #define SERVO2_PIN  7
 #define SERVO2_MIN  0
@@ -68,7 +69,7 @@ Servo servo2;
 uint8_t positionservo;
 
 // Timer2: demande de mesure périodique
-ISR(TIMER2_COMPA_vect) {
+/*ISR(TIMER2_COMPA_vect) {
   shouldMeasure = true;
 }
 
@@ -81,7 +82,7 @@ void setupTimer2() {
   TCCR2B |= (1 << CS22) | (1 << CS20); // Prescaler 128
   TIMSK2 |= (1 << OCIE2A);
   sei();
-}
+}*/
 
 void setup() {
   Serial.begin(9600);
@@ -105,7 +106,7 @@ void setup() {
   pinMode(ULTRASON_TRIG2, OUTPUT);
   digitalWrite(ULTRASON_TRIG2, LOW);
   pinMode(ULTRASON_ECHO2, INPUT);
-  setupTimer2();
+  //setupTimer2();
 
   // Moteurs
   pinMode(MOTOR_IN1, OUTPUT);
@@ -133,17 +134,14 @@ void setup() {
   Serial.println("QTRCalibration Fin");
   digitalWrite(LED_BUILTIN, LOW);
 
-  //servo
-  servo1.attach(SERVO_PIN1);
-  servo2.attach(SERVO_PIN2);
+  
 }
 
 void loop() {
   // Lancer les mesures hors interruption
-  if (shouldMeasure) {
-    shouldMeasure = false;
-    distance1 = getDistance(ULTRASON_TRIG1, ULTRASON_ECHO1);
-    distance2 = getDistance(ULTRASON_TRIG2, ULTRASON_ECHO2);
+ 
+  distance1 = getDistance(ULTRASON_TRIG1, ULTRASON_ECHO1);
+  distance2 = getDistance(ULTRASON_TRIG2, ULTRASON_ECHO2);
      // Si un obstacle est détecté
   if (distance1 < 7 || distance2 < 7) {
     Moteurs(stop, 0);
@@ -160,7 +158,7 @@ void loop() {
     }
     return;
   }
-  }else {
+  else {
       stopped=false;
   }
   
