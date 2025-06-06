@@ -7,7 +7,7 @@
 #define SERVO1_MIN  0
 
 #define SERVO1_MAX 50
-#define SERVO2_PIN  7
+#define SERVO2_PIN  8
 #define SERVO2_MIN  0
 #define SERVO2_MAX 50
 
@@ -67,6 +67,7 @@ volatile bool shouldMeasure = false; // Nouveau flag
 Servo servo1;
 Servo servo2;
 uint8_t positionservo;
+boolean uturndone;
 
 // Timer2: demande de mesure périodique
 /*ISR(TIMER2_COMPA_vect) {
@@ -133,7 +134,7 @@ void setup() {
   }
   Serial.println("QTRCalibration Fin");
   digitalWrite(LED_BUILTIN, LOW);
-
+  uturndone=false;
   
 }
 
@@ -142,8 +143,10 @@ void loop() {
  
   distance1 = getDistance(ULTRASON_TRIG1, ULTRASON_ECHO1);
   distance2 = getDistance(ULTRASON_TRIG2, ULTRASON_ECHO2);
+  Serial.print("Distance1: "); Serial.print(distance1);
+  Serial.print(" cm | Distance2: "); Serial.println(distance2);
      // Si un obstacle est détecté
-  if (distance1 < 7 || distance2 < 7) {
+  if ((distance1 < 6) && (distance2 < 6) &&(distance1>1) && (distance2>1)) {
     Moteurs(stop, 0);
     if (!stopped) {
       audio.playFileByIndexNumber(AUDIO_STOP_SOUND);
@@ -179,8 +182,7 @@ void loop() {
   }
 
   // Affichage des distances
-  Serial.print("Distance1: "); Serial.print(distance1);
-  Serial.print(" cm | Distance2: "); Serial.println(distance2);
+
 
   // Suivi de ligne (si pas d’obstacle devant)
   stopped = false;
@@ -188,17 +190,18 @@ void loop() {
   Serial.print("Position: ");
   Serial.println(position);
   Serial.print(sensorValues[0]);Serial.print(" "); Serial.print(sensorValues[1]); Serial.print(" "); Serial.print(sensorValues[2]);
-  if (sensorValues[0] < 50 && sensorValues[1] < 50 && sensorValues[2] < 50) {
+  if (sensorValues[0] < 60 && sensorValues[1] < 60 && sensorValues[2] < 60 && uturndone==false ) {
     Moteurs(stop, 0);
     Serial.println("Tous les capteurs sur blanc : arrêt");
     move_arm();
     Moteurs(uturn, 0);
+    uturndone=true;
     return;
   }
-  if (position < 800) {
+  if (position < 820) {
     Moteurs(left, 5);
     Serial.println("Tourne à gauche");
-  } else if (position > 1200) {
+  } else if (position > 1180) {
     Moteurs(right, 5);
     Serial.println("Tourne à droite");
   } else {
@@ -206,7 +209,7 @@ void loop() {
     Serial.println("Tout droit");
   }
 
-  delay(5);
+  delay(12);
 }
 
 // Fonctions utilitaires
@@ -258,9 +261,9 @@ void Moteurs(move sense, int time) {
     case uturn:
       digitalWrite(MOTOR_IN2, LOW);
       digitalWrite(MOTOR_IN4, LOW);
-      analogWrite(MOTOR_IN3, VITESSE_MOTEURS + 5);
-      analogWrite(MOTOR_IN1, VITESSE_MOTEURS + 5);
-      delay(6200);
+      analogWrite(MOTOR_IN3, VITESSE_MOTEURS + 10);
+      analogWrite(MOTOR_IN1, VITESSE_MOTEURS + 10);
+      delay(6000);
       break;
 
   }
