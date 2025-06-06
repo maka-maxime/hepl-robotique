@@ -36,7 +36,10 @@
 #define LED_PIN 8
 
 // Vitesse moteur
-#define VITESSE_MOTEURS 57
+#define VITESSE_MOTEURS 55
+
+//Heartbeat
+#define Heartbeat 26
 
 // Objets
 JQ6500_Serial audio(Serial3);
@@ -99,6 +102,10 @@ void setup() {
   led_state = 0;
   Serial.println("Waiting for a connection...");
 
+  //heartbear
+  pinMode(Heartbeat, OUTPUT);
+  digitalWrite(Heartbeat, HIGH);
+
   // Ultrasons
   pinMode(ULTRASON_TRIG1, OUTPUT);
   digitalWrite(ULTRASON_TRIG1, LOW);
@@ -134,13 +141,14 @@ void setup() {
   }
   Serial.println("QTRCalibration Fin");
   digitalWrite(LED_BUILTIN, LOW);
+  digitalWrite(Heartbeat, LOW);
   uturndone=false;
   
 }
 
 void loop() {
   // Lancer les mesures hors interruption
- 
+  digitalWrite(Heartbeat, digitalRead(Heartbeat)^0x01);
   distance1 = getDistance(ULTRASON_TRIG1, ULTRASON_ECHO1);
   distance2 = getDistance(ULTRASON_TRIG2, ULTRASON_ECHO2);
   Serial.print("Distance1: "); Serial.print(distance1);
@@ -190,7 +198,7 @@ void loop() {
   Serial.print("Position: ");
   Serial.println(position);
   Serial.print(sensorValues[0]);Serial.print(" "); Serial.print(sensorValues[1]); Serial.print(" "); Serial.print(sensorValues[2]);
-  if (sensorValues[0] < 60 && sensorValues[1] < 60 && sensorValues[2] < 60 && uturndone==false ) {
+  if ((sensorValues[0] < 50) && (sensorValues[1] < 50) && (sensorValues[2] < 50) && (uturndone==false) ) {
     Moteurs(stop, 0);
     Serial.println("Tous les capteurs sur blanc : arrêt");
     move_arm();
@@ -198,11 +206,15 @@ void loop() {
     uturndone=true;
     return;
   }
-  if (position < 820) {
-    Moteurs(left, 5);
+  else if((sensorValues[0] < 150) && (sensorValues[1] < 150) && (sensorValues[2] < 150) && (uturndone==true)){
+    Moteurs(stop, 0);
+    while(1){}
+  }
+  if (position < 760) {
+    Moteurs(left, 8);
     Serial.println("Tourne à gauche");
-  } else if (position > 1180) {
-    Moteurs(right, 5);
+  } else if (position > 1240) {
+    Moteurs(right, 8);
     Serial.println("Tourne à droite");
   } else {
     Moteurs(forward, 0);
@@ -243,14 +255,14 @@ void Moteurs(move sense, int time) {
     case right:
       digitalWrite(MOTOR_IN2, LOW);
       digitalWrite(MOTOR_IN4, LOW);
-      analogWrite(MOTOR_IN3, VITESSE_MOTEURS + 5);
-      analogWrite(MOTOR_IN1, VITESSE_MOTEURS + 5);
+      analogWrite(MOTOR_IN3, VITESSE_MOTEURS + 6);
+      analogWrite(MOTOR_IN1, VITESSE_MOTEURS + 6);
       break;
     case left:
       digitalWrite(MOTOR_IN1, LOW);
       digitalWrite(MOTOR_IN3, LOW);
-      analogWrite(MOTOR_IN2, VITESSE_MOTEURS + 5);
-      analogWrite(MOTOR_IN4, VITESSE_MOTEURS + 5);
+      analogWrite(MOTOR_IN2, VITESSE_MOTEURS + 6);
+      analogWrite(MOTOR_IN4, VITESSE_MOTEURS + 6);
       break;
     case stop:
       digitalWrite(MOTOR_IN1, LOW);
@@ -263,7 +275,18 @@ void Moteurs(move sense, int time) {
       digitalWrite(MOTOR_IN4, LOW);
       analogWrite(MOTOR_IN3, VITESSE_MOTEURS + 10);
       analogWrite(MOTOR_IN1, VITESSE_MOTEURS + 10);
-      delay(6000);
+      delay(3000);
+      digitalWrite(MOTOR_IN2, LOW);
+      digitalWrite(MOTOR_IN3, LOW);
+      analogWrite(MOTOR_IN1, VITESSE_MOTEURS);
+      analogWrite(MOTOR_IN4, VITESSE_MOTEURS);
+      delay(1000);
+      digitalWrite(MOTOR_IN2, LOW);
+      digitalWrite(MOTOR_IN4, LOW);
+      analogWrite(MOTOR_IN3, VITESSE_MOTEURS + 10);
+      analogWrite(MOTOR_IN1, VITESSE_MOTEURS + 10);
+      delay(2500);
+
       break;
 
   }
