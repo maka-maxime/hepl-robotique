@@ -1,6 +1,6 @@
 #include <Servo.h>
 
-#define SERVO_PIN 9
+#define SERVO_PIN 6
 #define SERVO_REST 0
 #define SERVO_POS1 30
 #define SERVO_POS2 120

@@ -1,6 +1,12 @@
 #include <QTRSensors.h>
 #include <JQ6500_Serial.h>
+#include <Servo.h>
 
+#define SERVO_PIN1 6
+#define SERVO_PIN2 7
+#define SERVO_REST 0
+#define SERVO_POS1 30
+#define SERVO_POS2 120
 // Moteurs
 #define MOTOR_IN1 2
 #define MOTOR_IN2 3
@@ -17,7 +23,7 @@
 #define AUDIO_TX 18
 #define AUDIO_RX 19
 #define AUDIO_BAUD 9600
-#define AUDIO_STOP_SOUND 2
+#define AUDIO_STOP_SOUND 1
 #define AUDIO_VOLUME ((byte)30)
 
 // BLE
@@ -26,10 +32,10 @@
 #define LED_PIN 8
 
 // Vitesse moteur
-#define VITESSE_MOTEURS 55
+#define VITESSE_MOTEURS 57
 
 // Objets
-JQ6500_Serial audio(Serial1);
+JQ6500_Serial audio(Serial3);
 QTRSensors qtr;
 
 const uint8_t SensorCount = 3;
@@ -54,6 +60,9 @@ uint8_t stopped = false;
 volatile float distance1 = 100;
 volatile float distance2 = 100;
 volatile bool shouldMeasure = false; // Nouveau flag
+Servo servo1;
+Servo servo2;
+uint8_t positionservo;
 
 // Timer2: demande de mesure périodique
 ISR(TIMER2_COMPA_vect) {
@@ -96,9 +105,9 @@ void setup() {
   pinMode(MOTOR_IN4, OUTPUT);
 
   // Audio
-  Serial1.begin(AUDIO_BAUD);
+  Serial3.begin(AUDIO_BAUD);
   audio.reset();
-  audio.setEqualizer(MP3_EQ_NORMAL);
+  //audio.setEqualizer(MP3_EQ_NORMAL);
   audio.setVolume(AUDIO_VOLUME);
   audio.setLoopMode(MP3_LOOP_NONE);
 
@@ -114,6 +123,10 @@ void setup() {
   }
   Serial.println("QTRCalibration Fin");
   digitalWrite(LED_BUILTIN, LOW);
+
+  //servo
+  servo1.attach(SERVO_PIN1);
+  servo2.attach(SERVO_PIN2);
 }
 
 void loop() {
@@ -123,15 +136,25 @@ void loop() {
     distance1 = getDistance(ULTRASON_TRIG1, ULTRASON_ECHO1);
     distance2 = getDistance(ULTRASON_TRIG2, ULTRASON_ECHO2);
      // Si un obstacle est détecté
-  if (distance1 < 10 || (distance2 < 10 && distance2 >= 0)) {
+  if (distance1 < 7 || distance2 < 7) {
     Moteurs(stop, 0);
     if (!stopped) {
       audio.playFileByIndexNumber(AUDIO_STOP_SOUND);
-      //stopped = true;
+      stopped = true;
+      Serial.println("Obstacle détecté!!!!");
+      /*servo1.write(SERVO_POS1);
+      servo2.write(SERVO_POS1);
+      delay(20);
+      servo1.write(SERVO_POS2);
+      servo2.write(SERVO_POS2);*/
+      delay(2000);
     }
     return;
   }
+  }else {
+      stopped=false;
   }
+  
 
   // BLE communication
   if (Serial2.available() != 0) {
@@ -161,20 +184,21 @@ void loop() {
   if (sensorValues[0] < 50 && sensorValues[1] < 50 && sensorValues[2] < 50) {
     Moteurs(stop, 0);
     Serial.println("Tous les capteurs sur blanc : arrêt");
+    Moteurs(uturn, 0);
     return;
   }
-  if (position < 700) {
-    Moteurs(left, 0);
+  if (position < 800) {
+    Moteurs(left, 5);
     Serial.println("Tourne à gauche");
-  } else if (position > 1300) {
-    Moteurs(right, 0);
+  } else if (position > 1200) {
+    Moteurs(right, 5);
     Serial.println("Tourne à droite");
   } else {
     Moteurs(forward, 0);
     Serial.println("Tout droit");
   }
 
-  delay(7);
+  delay(5);
 }
 
 // Fonctions utilitaires
@@ -224,15 +248,13 @@ void Moteurs(move sense, int time) {
       digitalWrite(MOTOR_IN4, LOW);
       break;
     case uturn:
-      digitalWrite(MOTOR_IN1, HIGH);
-      digitalWrite(MOTOR_IN4, HIGH);
-      analogWrite(MOTOR_IN2, VITESSE_MOTEURS);
-      analogWrite(MOTOR_IN3, VITESSE_MOTEURS);
-      delay(200);
-      digitalWrite(MOTOR_IN1, LOW);
       digitalWrite(MOTOR_IN2, LOW);
-      digitalWrite(MOTOR_IN3, LOW);
       digitalWrite(MOTOR_IN4, LOW);
+      analogWrite(MOTOR_IN3, VITESSE_MOTEURS + 5);
+      analogWrite(MOTOR_IN1, VITESSE_MOTEURS + 5);
+      delay(6200);
+      break;
+
   }
 
   if (time > 0) delay(time);

@@ -1,37 +1,19 @@
 #include <JQ6500_Serial.h>
 
-/// Connector P2 (UART)
-/// SPK+  === Haut-parleur R
-/// SPK-  === Haut-parleur N
-/// ADC_L === NC
-/// ADC_H === NC
-/// VCC   === VCC
-/// GND   === GND
-/// TX    === AUDIO_RX
-/// RX    === AUDIO_TX
-
-#define AUDIO_TX 18
-#define AUDIO_RX 19
-#define AUDIO_BAUD 9600
-#define AUDIO_VOLUME ((byte)30)
-
-JQ6500_Serial jq6500(Serial1);
+JQ6500_Serial mp3(Serial3);
 
 void setup() {
-  pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, LOW);
-  Serial1.begin(AUDIO_BAUD);
-  jq6500.reset();
-  jq6500.setEqualizer(MP3_EQ_NORMAL);
-  jq6500.setVolume(AUDIO_VOLUME);
-  jq6500.setLoopMode(MP3_LOOP_ONE_STOP);
-  jq6500.playFileByIndexNumber(2);
-  while (jq6500.getStatus() == MP3_STATUS_PLAYING)
-    delay(100);
-    delay(200);
-  digitalWrite(LED_BUILTIN, HIGH);
+  Serial.begin(9600); // Initialize Serial Monitor
+  Serial3.begin(9600); // Initialize Serial2 for MP3 module
+  mp3.reset(); // Reset the MP3 module
+  mp3.setVolume(30); // Set volume (0-30)
+  mp3.setLoopMode(MP3_LOOP_NONE); // Set loop mode (0: no loop, 1: loop)
 }
 
 void loop() {
-
+  int i=0;
+  i++;
+  mp3.playFileByIndexNumber(i); // Play the first file in the directory
+  Serial.println("test1");
+  delay(5000);
 }
